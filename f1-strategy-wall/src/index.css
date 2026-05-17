@@ -1,0 +1,163 @@
+/* src/index.css */
+
+:root {
+  color-scheme: dark;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, #151515, #090909 60%),
+    #050505;
+  color: white;
+}
+
+.app {
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.loading {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 800;
+}
+
+.header p {
+  margin: 8px 0 0;
+  color: #8b8b8b;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+}
+
+.leaderboard {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: rgba(255,255,255,0.04);
+}
+
+th {
+  text-align: left;
+  padding: 18px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #9a9a9a;
+}
+
+td {
+  padding: 18px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.driver-cell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.driver-cell img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.driver-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.driver-full {
+  color: #8e8e8e;
+  font-size: 12px;
+}
+
+.team-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.sidebar {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  padding: 24px;
+  backdrop-filter: blur(20px);
+  height: calc(100vh - 64px);
+  overflow: auto;
+}
+
+.sidebar h2 {
+  margin: 0 0 20px;
+  font-size: 22px;
+}
+
+.race-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.race-item {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.race-category {
+  font-size: 11px;
+  color: #ff7070;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.race-message {
+  font-size: 14px;
+  line-height: 1.4;
+}
