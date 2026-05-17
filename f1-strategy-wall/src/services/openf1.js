@@ -1,3 +1,5 @@
+// src/services/openf1.js
+
 const BASE = "https://api.openf1.org/v1";
 const SESSION_KEY = 9523;
 
@@ -9,9 +11,7 @@ async function fetchJson(url, retries = 3) {
   for (let i = 0; i < retries; i++) {
     const res = await fetch(url);
 
-    if (res.ok) {
-      return res.json();
-    }
+    if (res.ok) return res.json();
 
     if (res.status === 429) {
       await sleep(1500 * (i + 1));
@@ -21,55 +21,67 @@ async function fetchJson(url, retries = 3) {
     throw new Error(`OpenF1 API error: ${res.status}`);
   }
 
-  throw new Error("Rate limited by OpenF1");
+  throw new Error("Rate limited");
 }
 
-export async function loadRaceData() {
-  const drivers = await fetchJson(
-    `${BASE}/drivers?session_key=${SESSION_KEY}`
-  );
+function getTireImage(compound) {
+  const c = String(compound || "").toUpperCase();
 
-  await sleep(400);
+  if (c.includes("SOFT")) return "/assets/tires/soft.png";
+  if (c.includes("MEDIUM")) return "/assets/tires/medium.png";
+  if (c.includes("HARD")) return "/assets/tires/hard.png";
+  if (c.includes("INTER")) return "/assets/tires/intermediate.png";
+  if (c.includes("WET")) return "/assets/tires/wet.png";
 
-  const positions = await fetchJson(
-    `${BASE}/position?session_key=${SESSION_KEY}`
-  );
+  return "/assets/tires/unknown.png";
+}
 
-  await sleep(400);
+export async function loadReplayData() {
+  const drivers = await fetchJson(`${BASE}/drivers?session_key=${SESSION_KEY}`);
+  await sleep(300);
 
-  const intervals = await fetchJson(
-    `${BASE}/intervals?session_key=${SESSION_KEY}`
-  );
+  const positions = await fetchJson(`${BASE}/position?session_key=${SESSION_KEY}`);
+  await sleep(300);
 
-  await sleep(400);
+  const intervals = await fetchJson(`${BASE}/intervals?session_key=${SESSION_KEY}`);
+  await sleep(300);
 
-  const stints = await fetchJson(
-    `${BASE}/stints?session_key=${SESSION_KEY}`
-  );
+  const stints = await fetchJson(`${BASE}/stints?session_key=${SESSION_KEY}`);
+  await sleep(300);
 
-  await sleep(400);
+  const raceControl = await fetchJson(`${BASE}/race_control?session_key=${SESSION_KEY}`);
 
-  const raceControl = await fetchJson(
-    `${BASE}/race_control?session_key=${SESSION_KEY}`
-  );
+  return {
+    drivers,
+    positions,
+    intervals,
+    stints,
+    raceControl,
+  };
+}
 
+export function buildSnapshot(data, currentTime) {
   const driverMap = {};
-  drivers.forEach((d) => {
+  data.drivers.forEach((d) => {
     driverMap[d.driver_number] = d;
   });
 
   const latestPositionMap = {};
-  positions.forEach((p) => {
-    latestPositionMap[p.driver_number] = p;
-  });
+  data.positions
+    .filter((p) => new Date(p.date).getTime() <= currentTime)
+    .forEach((p) => {
+      latestPositionMap[p.driver_number] = p;
+    });
 
   const latestIntervalMap = {};
-  intervals.forEach((i) => {
-    latestIntervalMap[i.driver_number] = i;
-  });
+  data.intervals
+    .filter((i) => new Date(i.date).getTime() <= currentTime)
+    .forEach((i) => {
+      latestIntervalMap[i.driver_number] = i;
+    });
 
   const latestStintMap = {};
-  stints.forEach((s) => {
+  data.stints.forEach((s) => {
     latestStintMap[s.driver_number] = s;
   });
 
@@ -79,6 +91,7 @@ export async function loadRaceData() {
       const pos = latestPositionMap[driverNumber];
       const interval = latestIntervalMap[driverNumber];
       const stint = latestStintMap[driverNumber];
+      const compound = stint?.compound ?? "UNKNOWN";
 
       return {
         driverNumber,
@@ -90,15 +103,21 @@ export async function loadRaceData() {
         position: pos?.position ?? 99,
         gap: interval?.gap_to_leader ?? "—",
         interval: interval?.interval ?? "—",
-        compound: stint?.compound ?? "—",
+        compound,
+        tyreImage: getTireImage(compound),
         tyreAge: stint?.tyre_age_at_start ?? "—",
         stintNumber: stint?.stint_number ?? "—",
       };
     })
     .sort((a, b) => a.position - b.position);
 
+  const raceControl = data.raceControl
+    .filter((r) => new Date(r.date).getTime() <= currentTime)
+    .slice(-20)
+    .reverse();
+
   return {
     leaderboard,
-    raceControl: raceControl.slice(-20).reverse(),
+    raceControl,
   };
 }
